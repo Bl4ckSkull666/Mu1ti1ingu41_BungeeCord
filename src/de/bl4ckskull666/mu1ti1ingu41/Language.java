@@ -22,9 +22,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.zip.GZIPInputStream;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -150,6 +152,14 @@ public final class Language {
         return (String[])fc.getStringList(path).toArray();
     }
     
+    public static String getMsg(Plugin plugin, UUID uuid, String path, String defMsg) {
+        return getMsg(plugin, uuid, path, defMsg, new String[] {}, new String[] {});
+    }
+    
+    public static String getMsg(Plugin plugin, UUID uuid, String path, String defMsg, String[] search, String[] replace) {
+        return BaseComponent.toLegacyText(getMessage(plugin, uuid, path, defMsg, search, replace));
+    }
+    
     public static BaseComponent[] getMessage(Plugin plugin, UUID uuid, String path, String defMsg) {
         return getMessage(plugin, uuid, path, defMsg, new String[] {}, new String[] {});
     }
@@ -191,6 +201,49 @@ public final class Language {
         return Mu1ti1ingu41.castMessage(msg);
     }
     
+    public static String getMsg(Plugin plugin, String lang, String path, String defMsg) {
+        return getMsg(plugin, lang, path, defMsg, new String[] {}, new String[] {});
+    }
+    
+    public static String getMsg(Plugin plugin, String lang, String path, String defMsg, String[] search, String[] replace) {
+        return BaseComponent.toLegacyText(getMessage(plugin, lang, path, defMsg, search, replace));
+    }
+    
+    public static BaseComponent[] getMessage(Plugin plugin, String lang, String path, String defMsg) {
+        return getMessage(plugin, lang, path, defMsg, new String[] {}, new String[] {});
+    }
+    
+    public static BaseComponent[] getMessage(Plugin plugin, String lang, String path, String defMsg, String[] search, String[] replace) {
+        if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
+            return Mu1ti1ingu41.castMessage("Error on get Message (01). Please Inform the Server Team.");
+        
+        if(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase(), "").isEmpty())
+            return Mu1ti1ingu41.castMessage("Error on get Message (03). Please Inform the Server Team.");
+        
+        File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        Configuration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(lang.toLowerCase())) {
+            f = _files.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
+            fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
+        }
+            
+        if(fc.getStringList(path).isEmpty()) {
+            saveMissingPath(f, fc, path, defMsg);
+            if(search.length > 0 && search.length == replace.length) {
+                for(int i = 0; i < search.length; i++)
+                    defMsg = defMsg.replaceAll(search[i], replace[i]);
+            }
+            return Mu1ti1ingu41.castMessage(defMsg);
+        }
+        
+        String msg = fc.getString(path);
+        if(search.length > 0 && search.length == replace.length) {
+            for(int i = 0; i < search.length; i++)
+                msg = msg.replaceAll(search[i], replace[i]);
+        }
+        return Mu1ti1ingu41.castMessage(msg);
+    }
+    
     private static void saveMissingPath(File f, Configuration fc, String path, String defMsg) {
         fc.set(path, defMsg);
         saveConfigurationFile(fc, f);
@@ -205,29 +258,29 @@ public final class Language {
     }
     
     public static void setPlayerLanguage(UUID uuid) {
-        Mu1ti1ingu41 p = Mu1ti1ingu41.getPlugin();
-        File f = new File(p.getDataFolder(), "GeoIp.dat");
+        InetAddress ip = ProxyServer.getInstance().getPlayer(uuid).getPendingConnection().getAddress().getAddress();
+        String lang = getLanguageByAddress(ip);
+        UUIDLanguages._players.put(uuid, lang);
+    }
+    
+    public static String getLanguageByAddress(InetAddress ia) {
+        File f = new File(Mu1ti1ingu41.getPlugin().getDataFolder(), "GeoIp.dat");
         if(!f.exists())
             checkGeoIP();
         
-        InetAddress ip = ProxyServer.getInstance().getPlayer(uuid).getPendingConnection().getAddress().getAddress();
         try {
             LookupService cl = new LookupService(f, LookupService.GEOIP_MEMORY_CACHE);
-            String code = cl.getCountry(ip).getCode();
+            String code = cl.getCountry(ia).getCode();
             cl.close();
-            if(!p.getConfig().getString("replace-languages." + code.toLowerCase(), "").isEmpty()) {
-                UUIDLanguages._players.put(uuid, p.getConfig().getString("replace-languages." + code.toLowerCase()));
-                return;
-            }
+            if(!Mu1ti1ingu41.getPlugin().getConfig().getString("replace-languages." + code.toLowerCase(), "").isEmpty())
+                Mu1ti1ingu41.getPlugin().getConfig().getString("replace-languages." + code.toLowerCase());
             
-            if(p.getConfig().getStringList("available-languages").contains(code.toLowerCase())) {
-                UUIDLanguages._players.put(uuid, code.toLowerCase());
-                return;
-            }
+            if(Mu1ti1ingu41.getPlugin().getConfig().getStringList("available-languages").contains(code.toLowerCase()))
+                return code.toLowerCase();
         } catch(IOException e) {
-            p.getLogger().log(Level.WARNING, "Cant find Country for IP " + ip.getHostAddress(), e);
+            Mu1ti1ingu41.getPlugin().getLogger().log(Level.WARNING, "Cant find Country for IP " + ia.getHostAddress(), e);
         }
-        UUIDLanguages._players.put(uuid, p.getConfig().getString("default-language", "en"));
+        return Mu1ti1ingu41.getPlugin().getConfig().getString("default-language", "en");
     }
     
     private static void checkGeoIP() {
@@ -308,5 +361,9 @@ public final class Language {
     
     public static HashMap<String, HashMap<String, File>> getFileList() {
         return _files;
+    }
+    
+    public static BaseComponent[] convertString(String msg) {
+        return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', msg));
     }
 }
