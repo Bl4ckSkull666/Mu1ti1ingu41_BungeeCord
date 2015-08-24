@@ -65,7 +65,7 @@ public final class PingTasks {
 
         @Override
         public void run() {
-            for(String str: Mu1ti1ingu41.getPlugin().getConfig().getSection("bukkit-configs").getKeys()) {
+            for(String str: Mu1ti1ingu41.getPlugin().getConfig().getConfigurationSection("bukkit-configs").getKeys(false)) {
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
                 out.writeUTF("MU1TI1INGU41");
                 out.writeUTF(str);

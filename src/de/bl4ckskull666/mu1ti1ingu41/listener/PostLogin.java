@@ -27,7 +27,7 @@ public class PostLogin implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPostLogin(PostLoginEvent e) {
         if(!UUIDLanguages._players.containsKey(e.getPlayer().getUniqueId())) {
-            Language.setPlayerLanguage(e.getPlayer().getUniqueId());
+            Language.setPlayerLanguage(e.getPlayer().getUniqueId(), e.getPlayer().getPendingConnection().getAddress().getAddress());
             e.getPlayer().sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(),
                             e.getPlayer().getUniqueId(),
                             "auto-language",
@@ -57,7 +57,7 @@ public class PostLogin implements Listener {
     }
     
     private String getLanguageName(String shortLang) {
-        for(String key: Mu1ti1ingu41.getPlugin().getConfig().getSection("short-language").getKeys()) {
+        for(String key: Mu1ti1ingu41.getPlugin().getConfig().getConfigurationSection("short-language").getKeys(false)) {
             if(Mu1ti1ingu41.getPlugin().getConfig().getString("short-language." + key).equalsIgnoreCase(shortLang))
                 return key;
         }

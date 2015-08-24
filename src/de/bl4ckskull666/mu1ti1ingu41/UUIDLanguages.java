@@ -11,9 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import yamlapi.file.FileConfiguration;
+import yamlapi.file.YamlConfiguration;
 
 /**
  *
@@ -33,15 +32,10 @@ public final class UUIDLanguages {
         if(!Mu1ti1ingu41.getPlugin().getDataFolder().exists())
             Mu1ti1ingu41.getPlugin().getDataFolder().mkdir();
         
-        try {
-            File file = new File(Mu1ti1ingu41.getPlugin().getDataFolder(), "users.yml");
-            Configuration f = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
-        
-            for(String key: f.getKeys())
-                _players.put(UUID.fromString(key), f.getString(key));
-        } catch (IOException ex) {
-            Mu1ti1ingu41.getPlugin().getLogger().log(Level.WARNING, "Error on load Players language.");
-        }
+        File file = new File(Mu1ti1ingu41.getPlugin().getDataFolder(), "users.yml");
+        FileConfiguration f = YamlConfiguration.loadConfiguration(file);
+        for(String key: f.getKeys(false))
+            _players.put(UUID.fromString(key), f.getString(key));
     }
     
     public static void savePlayerLanguages() {
@@ -50,12 +44,12 @@ public final class UUIDLanguages {
         
         try {
             File file = new File(Mu1ti1ingu41.getPlugin().getDataFolder(), "users.yml");
-            Configuration f = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+            FileConfiguration f = YamlConfiguration.loadConfiguration(file);
 
             for(Map.Entry<UUID, String> me: _players.entrySet())
                 f.set(me.getKey().toString(), me.getValue());
         
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(f, file);
+            f.save(file);
         } catch (IOException ex) {
             Mu1ti1ingu41.getPlugin().getLogger().log(Level.WARNING, "Error on save Players language.");
         }

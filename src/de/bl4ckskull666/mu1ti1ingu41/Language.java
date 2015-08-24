@@ -7,11 +7,9 @@ package de.bl4ckskull666.mu1ti1ingu41;
 
 import com.maxmind.geoip.LookupService;
 import de.bl4ckskull666.mu1ti1ingu41.utils.ResourceList;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,16 +25,15 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import yamlapi.file.FileConfiguration;
+import yamlapi.file.YamlConfiguration;
 
 /**
  *
  * @author PapaHarni
  */
 public final class Language {
-    private final static HashMap<String, HashMap<String, Configuration>> _languages = new HashMap<>();
+    private final static HashMap<String, HashMap<String, FileConfiguration>> _languages = new HashMap<>();
     private final static HashMap<String, HashMap<String, File>> _files = new HashMap<>();
 
     public static void loadLanguage() {
@@ -61,14 +58,14 @@ public final class Language {
         if(!_languages.containsKey(Mu1ti1ingu41.name().toLowerCase()))
             loadDefaultLanguage(Mu1ti1ingu41.getPlugin(), "languages");
         
-        for(Map.Entry<String, HashMap<String, Configuration>> me: _languages.entrySet()) {
+        for(Map.Entry<String, HashMap<String, FileConfiguration>> me: _languages.entrySet()) {
             if(me.getValue().containsKey(Mu1ti1ingu41.getPlugin().getConfig().getString("default-language"))) {
                 Mu1ti1ingu41.getPlugin().getConfig().set("default-plugin-language." + me.getKey().toLowerCase(), Mu1ti1ingu41.getPlugin().getConfig().getString("default-language"));
                 continue;
             }
             
             stopThisLoop:
-            for(Map.Entry<String, Configuration> me2: me.getValue().entrySet()) {
+            for(Map.Entry<String, FileConfiguration> me2: me.getValue().entrySet()) {
                 Mu1ti1ingu41.getPlugin().getConfig().set("default-plugin-language." + me.getKey().toLowerCase(), me2.getKey().toLowerCase());
                 Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Default Language in {0} not found. Set it to {1}", new Object[]{me.getKey(), me2.getKey()});
                 break stopThisLoop;
@@ -79,6 +76,7 @@ public final class Language {
     
     
     private static void addFileToPlugin(File f, String plugin) {
+        Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Check File {0} in folder {1}.", new Object[]{f.getName(), plugin});
         if(!_files.containsKey(plugin)) {
             _files.put(plugin, new HashMap<>());
             _languages.put(plugin, new HashMap<>());
@@ -89,7 +87,7 @@ public final class Language {
         if (pos > 0)
             name = name.substring(0, pos);
         
-        Configuration fc = CastFileToConfiguration(f);
+        FileConfiguration fc = YamlConfiguration.loadConfiguration(f);
         if(fc == null)
             return;
         
@@ -98,16 +96,16 @@ public final class Language {
         Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Language {0} for Plugin {1} has been loaded.", new Object[]{name, plugin});
     }
     
-    private static Configuration CastFileToConfiguration(File file) {
+    /*private static Configuration CastFileToConfiguration(File file) {
         try {
             return ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
         } catch (IOException ex) {
             Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Can''t cast {0} to Configuration.", file.getName());
             return null;
         }
-    }
+    }*/
     
-    public static Configuration getMessageFile(Plugin plugin, UUID uuid) {
+    public static FileConfiguration getMessageFile(Plugin plugin, UUID uuid) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
             return null;
         
@@ -117,10 +115,10 @@ public final class Language {
         if(!UUIDLanguages._players.containsKey(uuid))
             return null;
         
-        if(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase(), "").isEmpty())
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
             return null;
         
-        Configuration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(UUIDLanguages._players.get(uuid)))
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
         
@@ -137,17 +135,17 @@ public final class Language {
         if(!UUIDLanguages._players.containsKey(uuid))
             return new String[] {"Error on get Messages (12). Please Inform the Server Team."};
         
-        if(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase(), "").isEmpty())
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
             return new String[] {"Error on get Messages (13). Please Inform the Server Team."};
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
-        Configuration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(UUIDLanguages._players.get(uuid))) {
             f = _files.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
         }
         
-        if(fc.getStringList(path).isEmpty())
+        if(!fc.isList(path))
             return new String[] {"Error on get Messages (14). Please Inform the Server Team."};
         return (String[])fc.getStringList(path).toArray();
     }
@@ -174,17 +172,17 @@ public final class Language {
         if(!UUIDLanguages._players.containsKey(uuid))
             return Mu1ti1ingu41.castMessage("Error on get Message (02). Please Inform the Server Team.");
         
-        if(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase(), "").isEmpty())
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
             return Mu1ti1ingu41.castMessage("Error on get Message (03). Please Inform the Server Team.");
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
-        Configuration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(UUIDLanguages._players.get(uuid))) {
             f = _files.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
         }
             
-        if(fc.getStringList(path).isEmpty()) {
+        if(fc.getString(path, "").isEmpty()) {
             saveMissingPath(f, fc, path, defMsg);
             if(search.length > 0 && search.length == replace.length) {
                 for(int i = 0; i < search.length; i++)
@@ -217,17 +215,17 @@ public final class Language {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
             return Mu1ti1ingu41.castMessage("Error on get Message (01). Please Inform the Server Team.");
         
-        if(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase(), "").isEmpty())
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
             return Mu1ti1ingu41.castMessage("Error on get Message (03). Please Inform the Server Team.");
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
-        Configuration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(lang.toLowerCase())) {
             f = _files.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
         }
-            
-        if(fc.getStringList(path).isEmpty()) {
+        
+        if(fc.getString(path, "").isEmpty()) {
             saveMissingPath(f, fc, path, defMsg);
             if(search.length > 0 && search.length == replace.length) {
                 for(int i = 0; i < search.length; i++)
@@ -244,22 +242,29 @@ public final class Language {
         return Mu1ti1ingu41.castMessage(msg);
     }
     
-    private static void saveMissingPath(File f, Configuration fc, String path, String defMsg) {
+    private static void saveMissingPath(File f, FileConfiguration fc, String path, String defMsg) {
         fc.set(path, defMsg);
         saveConfigurationFile(fc, f);
     }
-    
-    private static void saveConfigurationFile(Configuration conf, File f) {
+
+    private static void saveConfigurationFile(FileConfiguration conf, File f) {
         try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(conf, f);
+            conf.save(f);
         } catch (IOException ex) {
             Mu1ti1ingu41.getPlugin().getLogger().log(Level.WARNING, "Can't save the file", ex);
         }
     }
-    
+
+    public static void setPlayerLanguage(UUID uuid, InetAddress ip) {
+        UUIDLanguages._players.put(uuid, getLanguageByAddress(ip));
+    }
+
     public static void setPlayerLanguage(UUID uuid) {
-        InetAddress ip = ProxyServer.getInstance().getPlayer(uuid).getPendingConnection().getAddress().getAddress();
-        String lang = getLanguageByAddress(ip);
+        String lang = "";
+        if(ProxyServer.getInstance().getPlayer(uuid) == null)
+            lang = Mu1ti1ingu41.getPlugin().getConfig().getString("default-language", "en");
+        else
+            lang = getLanguageByAddress(ProxyServer.getInstance().getPlayer(uuid).getPendingConnection().getAddress().getAddress());
         UUIDLanguages._players.put(uuid, lang);
     }
     
@@ -273,7 +278,7 @@ public final class Language {
             String code = cl.getCountry(ia).getCode();
             cl.close();
             if(!Mu1ti1ingu41.getPlugin().getConfig().getString("replace-languages." + code.toLowerCase(), "").isEmpty())
-                Mu1ti1ingu41.getPlugin().getConfig().getString("replace-languages." + code.toLowerCase());
+                return Mu1ti1ingu41.getPlugin().getConfig().getString("replace-languages." + code.toLowerCase());
             
             if(Mu1ti1ingu41.getPlugin().getConfig().getStringList("available-languages").contains(code.toLowerCase()))
                 return code.toLowerCase();
@@ -326,7 +331,7 @@ public final class Language {
     public static void loadDefaultLanguage(Plugin pl, String folder) {
         File lFold = new File(Mu1ti1ingu41.getPlugin().getDataFolder(), "languages/" + pl.getDescription().getName().toLowerCase());
         if(lFold.exists()) {
-            Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Folder for " + pl.getDescription().getName() + " exist. Break the collect of default files. Remove it to load default files.");
+            Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Folder for {0} exist. Break the collect of default files. Remove it to load default files.", pl.getDescription().getName());
             return;
         }
          
@@ -342,17 +347,16 @@ public final class Language {
                 InputStream in = pl.getResourceAsStream(srcFile);
                 int c = -1;
                 File spLang = new File(lFold, name);
-                FileWriter fw = new FileWriter(spLang);
-                BufferedWriter bw = new BufferedWriter(fw);
+                OutputStream os = new FileOutputStream(spLang);
                 while((c = in.read()) != -1)
-                    bw.write(String.valueOf((char)c));
+                    os.write(c);
                 
-                Configuration fcLang = CastFileToConfiguration(spLang);
-                saveConfigurationFile(fcLang, spLang);
+                os.close();
+                in.close();
                 
                 if(name.lastIndexOf(".") > -1)
                     name = name.substring(0, name.lastIndexOf("."));
-                addFileToPlugin(spLang, pl.getDescription().getName().toLowerCase().toLowerCase());
+                addFileToPlugin(spLang, pl.getDescription().getName().toLowerCase());
             } catch (IOException ex) {
                 Mu1ti1ingu41.getPlugin().getLogger().log(Level.SEVERE, "Error on loading default language " + name, ex);
             }

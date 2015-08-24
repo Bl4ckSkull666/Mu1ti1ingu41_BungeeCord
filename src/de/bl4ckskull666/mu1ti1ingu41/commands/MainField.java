@@ -41,7 +41,7 @@ public final class MainField {
         if(a.length < 1) {
             p.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), p.getUniqueId(), "command.need-language", "Please select one of the following language :"));
             String ava = "";
-            for(String str: Mu1ti1ingu41.getPlugin().getConfig().getSection("short-language").getKeys())
+            for(String str: Mu1ti1ingu41.getPlugin().getConfig().getConfigurationSection("short-language").getKeys(false))
                 ava += ava.isEmpty()?"§e":"§9, §e" + str;
             p.sendMessage(Mu1ti1ingu41.castMessage(ava));
             return;

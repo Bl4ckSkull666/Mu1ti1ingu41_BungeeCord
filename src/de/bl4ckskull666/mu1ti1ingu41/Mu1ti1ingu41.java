@@ -10,11 +10,11 @@ import de.bl4ckskull666.mu1ti1ingu41.commands.LanguageCommand;
 import de.bl4ckskull666.mu1ti1ingu41.commands.SpracheCommand;
 import de.bl4ckskull666.mu1ti1ingu41.listener.PostLogin;
 import de.bl4ckskull666.mu1ti1ingu41.utils.ResourceList;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.UUID;
 import java.util.logging.Level;
 import net.md_5.bungee.api.ChatColor;
@@ -22,16 +22,15 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import yamlapi.file.FileConfiguration;
+import yamlapi.file.YamlConfiguration;
 
 /**
  *
  * @author PapaHarni
  */
 public class Mu1ti1ingu41 extends Plugin {
-    private Configuration _config = null;
+    private FileConfiguration _config = null;
     
     @Override
     public void onEnable() {
@@ -57,13 +56,13 @@ public class Mu1ti1ingu41 extends Plugin {
         
     }
     
-    public Configuration getConfig() {
+    public FileConfiguration getConfig() {
         if(_config == null)
             _config = Mu1ti1ingu41.loadConfig(this);
         return _config;
     }
     
-    public static Configuration loadConfig(Plugin plugin) {
+    public static FileConfiguration loadConfig(Plugin plugin) {
         try {
             boolean saveConfig = false;
             if(!plugin.getDataFolder().exists())
@@ -78,14 +77,15 @@ public class Mu1ti1ingu41 extends Plugin {
 
                 InputStream in = plugin.getResourceAsStream(srcFile);
                 int c = -1;
-                FileWriter fw = new FileWriter(file);
-                BufferedWriter bw = new BufferedWriter(fw);
+                OutputStream os = new FileOutputStream(file);
                 while((c = in.read()) != -1)
-                    bw.write(String.valueOf((char)c));
-                bw.close();
+                    os.write(c);
+                os.close();
+                in.close();
+                
                 saveConfig = true;
             }
-            Configuration conf = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+            FileConfiguration conf = YamlConfiguration.loadConfiguration(file);
             if(saveConfig)
                 Mu1ti1ingu41.saveConfig(conf, plugin);
             return conf;
@@ -95,13 +95,13 @@ public class Mu1ti1ingu41 extends Plugin {
         return null;
     }
     
-    public static void saveConfig(Configuration conf, Plugin plugin) {
+    public static void saveConfig(FileConfiguration conf, Plugin plugin) {
         if(!plugin.getDataFolder().exists())
                 plugin.getDataFolder().mkdirs();
         
         File file = new File(plugin.getDataFolder(), "config.yml");
         try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(conf, file);
+            conf.save(file);
         } catch (IOException ex) {
             plugin.getLogger().log(Level.WARNING, "Can't save the config file", ex);
         }
