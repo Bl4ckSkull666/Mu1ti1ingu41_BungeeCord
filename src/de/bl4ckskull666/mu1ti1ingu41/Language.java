@@ -58,6 +58,11 @@ public final class Language {
         if(!_languages.containsKey(Mu1ti1ingu41.name().toLowerCase()))
             loadDefaultLanguage(Mu1ti1ingu41.getPlugin(), "languages");
         
+        checkDefaultFiles();
+        Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Languages has been loaded.");
+    }
+    
+    private static void checkDefaultFiles() {
         for(Map.Entry<String, HashMap<String, FileConfiguration>> me: _languages.entrySet()) {
             if(me.getValue().containsKey(Mu1ti1ingu41.getPlugin().getConfig().getString("default-language"))) {
                 Mu1ti1ingu41.getPlugin().getConfig().set("default-plugin-language." + me.getKey().toLowerCase(), Mu1ti1ingu41.getPlugin().getConfig().getString("default-language"));
@@ -71,10 +76,7 @@ public final class Language {
                 break stopThisLoop;
             }
         }
-        Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Languages has been loaded.");
     }
-    
-    
     private static void addFileToPlugin(File f, String plugin) {
         Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Check File {0} in folder {1}.", new Object[]{f.getName(), plugin});
         if(!_files.containsKey(plugin)) {
@@ -155,7 +157,40 @@ public final class Language {
     }
     
     public static String getMsg(Plugin plugin, UUID uuid, String path, String defMsg, String[] search, String[] replace) {
-        return BaseComponent.toLegacyText(getMessage(plugin, uuid, path, defMsg, search, replace));
+        if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
+            return "Error on get Message (21). Please Inform the Server Team.";
+        
+        if(!UUIDLanguages._players.containsKey(uuid))
+            setPlayerLanguage(uuid);
+        
+        if(!UUIDLanguages._players.containsKey(uuid))
+            return "Error on get Message (22). Please Inform the Server Team.";
+        
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
+            return "Error on get Message (23). Please Inform the Server Team.";
+        
+        File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(UUIDLanguages._players.get(uuid))) {
+            f = _files.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
+            fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
+        }
+            
+        if(fc.getString(path, "").isEmpty()) {
+            saveMissingPath(f, fc, path, defMsg);
+            if(search.length > 0 && search.length == replace.length) {
+                for(int i = 0; i < search.length; i++)
+                    defMsg = defMsg.replaceAll(search[i], replace[i]);
+            }
+            return defMsg;
+        }
+        
+        String msg = fc.getString(path);
+        if(search.length > 0 && search.length == replace.length) {
+            for(int i = 0; i < search.length; i++)
+                msg = msg.replaceAll(search[i], replace[i]);
+        }
+        return msg;
     }
     
     public static BaseComponent[] getMessage(Plugin plugin, UUID uuid, String path, String defMsg) {
@@ -204,7 +239,34 @@ public final class Language {
     }
     
     public static String getMsg(Plugin plugin, String lang, String path, String defMsg, String[] search, String[] replace) {
-        return BaseComponent.toLegacyText(getMessage(plugin, lang, path, defMsg, search, replace));
+        if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
+            return "Error on get Message (31). Please Inform the Server Team.";
+        
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
+            return "Error on get Message (32). Please Inform the Server Team.";
+        
+        File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(lang.toLowerCase())) {
+            f = _files.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
+            fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
+        }
+        
+        if(fc.getString(path, "").isEmpty()) {
+            saveMissingPath(f, fc, path, defMsg);
+            if(search.length > 0 && search.length == replace.length) {
+                for(int i = 0; i < search.length; i++)
+                    defMsg = defMsg.replaceAll(search[i], replace[i]);
+            }
+            return defMsg;
+        }
+        
+        String msg = fc.getString(path);
+        if(search.length > 0 && search.length == replace.length) {
+            for(int i = 0; i < search.length; i++)
+                msg = msg.replaceAll(search[i], replace[i]);
+        }
+        return msg;
     }
     
     public static BaseComponent[] getMessage(Plugin plugin, String lang, String path, String defMsg) {
@@ -213,10 +275,10 @@ public final class Language {
     
     public static BaseComponent[] getMessage(Plugin plugin, String lang, String path, String defMsg, String[] search, String[] replace) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
-            return Mu1ti1ingu41.castMessage("Error on get Message (01). Please Inform the Server Team.");
+            return Mu1ti1ingu41.castMessage("Error on get Message (41). Please Inform the Server Team.");
         
         if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
-            return Mu1ti1ingu41.castMessage("Error on get Message (03). Please Inform the Server Team.");
+            return Mu1ti1ingu41.castMessage("Error on get Message (42). Please Inform the Server Team.");
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
@@ -361,6 +423,7 @@ public final class Language {
                 Mu1ti1ingu41.getPlugin().getLogger().log(Level.SEVERE, "Error on loading default language " + name, ex);
             }
         }
+        checkDefaultFiles();
     }
     
     public static HashMap<String, HashMap<String, File>> getFileList() {
