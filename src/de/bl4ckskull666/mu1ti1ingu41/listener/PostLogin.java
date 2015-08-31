@@ -50,10 +50,10 @@ public class PostLogin implements Listener {
     
     private void sendPlayerLanguageToServer(ServerInfo si, UUID uuid, String language) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("MU1TI1INGU41");
+        out.writeUTF("player");
         out.writeUTF(uuid.toString());
         out.writeUTF(language);
-        si.sendData("BungeeCord", out.toByteArray());
+        si.sendData("Mu1ti1ingu41", out.toByteArray());
     }
     
     private String getLanguageName(String shortLang) {
