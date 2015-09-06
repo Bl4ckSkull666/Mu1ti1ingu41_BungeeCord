@@ -1,5 +1,10 @@
 command:
-  need-language: 'Bitte waehle eine der folgenden Sprachen aus und setze diese hinter den Befehl.'
+  need-language:
+    message: 'Bitte waehle eine der folgenden Sprachen aus und setze diese hinter den Befehl.'
+    hover-type: 'text'
+    hover-msg: 'Webseite --> http://www.amc-server.de'
+    click-type: 'open_url'
+    click-msg: 'http://www.amc-server.de'
   unknown-language: 'Konnte die von dir angegebene Sprache nicht finden.'
   changed-language: 'Die Sprache wurde erfolgreich geaendert fuer einige Plugins.'
 auto-language: 'Deine Sprach wurde automatisch bestimmt zu %language%. Du kannst dieses aendern mit /sprache'

@@ -5,8 +5,10 @@
  */
 package de.bl4ckskull666.mu1ti1ingu41;
 
+import com.google.common.collect.ObjectArrays;
 import com.maxmind.geoip.LookupService;
 import de.bl4ckskull666.mu1ti1ingu41.utils.ResourceList;
+import de.bl4ckskull666.mu1ti1ingu41.utils.Utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -24,6 +26,9 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import yamlapi.file.FileConfiguration;
 import yamlapi.file.YamlConfiguration;
@@ -175,22 +180,16 @@ public final class Language {
             f = _files.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
         }
+        
+        if(fc.isConfigurationSection(path) && fc.isString(path + ".message"))
+            return searchAndReplace(fc.getString(path + ".message"), search, replace);
             
         if(fc.getString(path, "").isEmpty()) {
             saveMissingPath(f, fc, path, defMsg);
-            if(search.length > 0 && search.length == replace.length) {
-                for(int i = 0; i < search.length; i++)
-                    defMsg = defMsg.replaceAll(search[i], replace[i]);
-            }
-            return defMsg;
+            return searchAndReplace(defMsg, search, replace);
         }
         
-        String msg = fc.getString(path);
-        if(search.length > 0 && search.length == replace.length) {
-            for(int i = 0; i < search.length; i++)
-                msg = msg.replaceAll(search[i], replace[i]);
-        }
-        return msg;
+        return searchAndReplace(fc.getString(path), search, replace);
     }
     
     public static BaseComponent[] getMessage(Plugin plugin, UUID uuid, String path, String defMsg) {
@@ -216,22 +215,47 @@ public final class Language {
             f = _files.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
         }
+        
+        if(fc.isConfigurationSection(path) && fc.isString(path + ".message")) {
+            TextComponent msg = new TextComponent(searchAndReplace(fc.getString(path + ",message"), search, replace));
+            if(fc.isString(path + ".hover-msg")) {
+                msg.setHoverEvent(
+                        new HoverEvent(
+                        Utils.isHoverAction("show_" + fc.getString(path + ".hover-type", "text"))?HoverEvent.Action.valueOf(("show_" + fc.getString(path + ".hover-type", "text")).toUpperCase()):HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder(searchAndReplace(fc.getString(path + ".hover-msg"), search, replace)).create()
+                    )
+                );
+            }
+            if(fc.isString(path + ".click-msg")) {
+                msg.setClickEvent(
+                        new ClickEvent(
+                        Utils.isClickAction(fc.getString(path + ".click-type", "open_url"))?ClickEvent.Action.valueOf(fc.getString(path + ".click-type", "open_url").toUpperCase()):ClickEvent.Action.OPEN_URL, 
+                        searchAndReplace(fc.getString(path + ".click-msg"), search, replace)
+                    )
+                );
+            }
+            return (new BaseComponent[] {msg});
+            /*BaseComponent[] one = new BaseComponent[] {msg};
+            BaseComponent[] two = new BaseComponent[] {msg};
+            BaseComponent[] three = ObjectArrays.concat(one, two, BaseComponent.class);
+            BaseComponent[] four = merge(one, two, three, one, two, three, one, two, three, one, two, three);
+            */
+        }
             
         if(fc.getString(path, "").isEmpty()) {
             saveMissingPath(f, fc, path, defMsg);
-            if(search.length > 0 && search.length == replace.length) {
-                for(int i = 0; i < search.length; i++)
-                    defMsg = defMsg.replaceAll(search[i], replace[i]);
-            }
-            return Mu1ti1ingu41.castMessage(defMsg);
+            return Mu1ti1ingu41.castMessage(searchAndReplace(defMsg, search, replace));
         }
         
-        String msg = fc.getString(path);
-        if(search.length > 0 && search.length == replace.length) {
-            for(int i = 0; i < search.length; i++)
-                msg = msg.replaceAll(search[i], replace[i]);
+        return Mu1ti1ingu41.castMessage(searchAndReplace(fc.getString(path), search, replace));
+    }
+    
+    private static BaseComponent[] merge(BaseComponent[] bc1, BaseComponent[]... more) {
+        BaseComponent[] base = bc1;
+        for(BaseComponent[] bc: more) {
+            base = ObjectArrays.concat(base, bc, BaseComponent.class);
         }
-        return Mu1ti1ingu41.castMessage(msg);
+        return base;
     }
     
     public static String getMsg(Plugin plugin, String lang, String path, String defMsg) {
@@ -252,21 +276,15 @@ public final class Language {
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
         }
         
+        if(fc.isConfigurationSection(path) && fc.isString(path + ".message"))
+            return searchAndReplace(fc.getString(path + ".message"), search, replace);
+        
         if(fc.getString(path, "").isEmpty()) {
             saveMissingPath(f, fc, path, defMsg);
-            if(search.length > 0 && search.length == replace.length) {
-                for(int i = 0; i < search.length; i++)
-                    defMsg = defMsg.replaceAll(search[i], replace[i]);
-            }
-            return defMsg;
+            return searchAndReplace(defMsg, search, replace);
         }
         
-        String msg = fc.getString(path);
-        if(search.length > 0 && search.length == replace.length) {
-            for(int i = 0; i < search.length; i++)
-                msg = msg.replaceAll(search[i], replace[i]);
-        }
-        return msg;
+        return searchAndReplace(fc.getString(path), search, replace);
     }
     
     public static BaseComponent[] getMessage(Plugin plugin, String lang, String path, String defMsg) {
@@ -287,21 +305,33 @@ public final class Language {
             fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(lang.toLowerCase());
         }
         
-        if(fc.getString(path, "").isEmpty()) {
-            saveMissingPath(f, fc, path, defMsg);
-            if(search.length > 0 && search.length == replace.length) {
-                for(int i = 0; i < search.length; i++)
-                    defMsg = defMsg.replaceAll(search[i], replace[i]);
+        if(fc.isConfigurationSection(path) && fc.isString(path + ".message")) {
+            TextComponent msg = new TextComponent(searchAndReplace(fc.getString(path + ",message"), search, replace));
+            if(fc.isString(path + ".hover-msg")) {
+                msg.setHoverEvent(
+                        new HoverEvent(
+                        Utils.isHoverAction("show_" + fc.getString(path + ".hover-type", "text"))?HoverEvent.Action.valueOf(("show_" + fc.getString(path + ".hover-type", "text")).toUpperCase()):HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder(searchAndReplace(fc.getString(path + ".hover-msg"), search, replace)).create()
+                    )
+                );
             }
-            return Mu1ti1ingu41.castMessage(defMsg);
+            if(fc.isString(path + ".click-msg")) {
+                msg.setClickEvent(
+                        new ClickEvent(
+                        Utils.isClickAction(fc.getString(path + ".click-type", "open_url"))?ClickEvent.Action.valueOf(fc.getString(path + ".click-type", "open_url").toUpperCase()):ClickEvent.Action.OPEN_URL, 
+                        searchAndReplace(fc.getString(path + ".click-msg"), search, replace)
+                    )
+                );
+            }
+            return (new BaseComponent[] {msg});
         }
         
-        String msg = fc.getString(path);
-        if(search.length > 0 && search.length == replace.length) {
-            for(int i = 0; i < search.length; i++)
-                msg = msg.replaceAll(search[i], replace[i]);
+        if(fc.getString(path, "").isEmpty()) {
+            saveMissingPath(f, fc, path, defMsg);
+            return Mu1ti1ingu41.castMessage(searchAndReplace(defMsg, search, replace));
         }
-        return Mu1ti1ingu41.castMessage(msg);
+        
+        return Mu1ti1ingu41.castMessage(searchAndReplace(fc.getString(path), search, replace));
     }
     
     private static void saveMissingPath(File f, FileConfiguration fc, String path, String defMsg) {
@@ -432,5 +462,13 @@ public final class Language {
     
     public static BaseComponent[] convertString(String msg) {
         return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', msg));
+    }
+    
+    private static String searchAndReplace(String msg, String[] search, String[] replace) {
+        if(search.length > 0 && search.length == replace.length) {
+            for(int i = 0; i < search.length; i++)
+                msg = msg.replaceAll(search[i], replace[i]);
+        }
+        return msg;
     }
 }
