@@ -5,7 +5,6 @@
  */
 package de.bl4ckskull666.mu1ti1ingu41;
 
-import com.google.common.collect.ObjectArrays;
 import com.maxmind.geoip.LookupService;
 import de.bl4ckskull666.mu1ti1ingu41.utils.ResourceList;
 import de.bl4ckskull666.mu1ti1ingu41.utils.Utils;
@@ -102,15 +101,6 @@ public final class Language {
         _languages.get(plugin).put(name, fc);
         Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Language {0} for Plugin {1} has been loaded.", new Object[]{name, plugin});
     }
-    
-    /*private static Configuration CastFileToConfiguration(File file) {
-        try {
-            return ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
-        } catch (IOException ex) {
-            Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Can''t cast {0} to Configuration.", file.getName());
-            return null;
-        }
-    }*/
     
     public static FileConfiguration getMessageFile(Plugin plugin, UUID uuid) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
@@ -235,11 +225,6 @@ public final class Language {
                 );
             }
             return (new BaseComponent[] {msg});
-            /*BaseComponent[] one = new BaseComponent[] {msg};
-            BaseComponent[] two = new BaseComponent[] {msg};
-            BaseComponent[] three = ObjectArrays.concat(one, two, BaseComponent.class);
-            BaseComponent[] four = merge(one, two, three, one, two, three, one, two, three, one, two, three);
-            */
         }
             
         if(fc.getString(path, "").isEmpty()) {
@@ -248,14 +233,6 @@ public final class Language {
         }
         
         return Mu1ti1ingu41.castMessage(searchAndReplace(fc.getString(path), search, replace));
-    }
-    
-    private static BaseComponent[] merge(BaseComponent[] bc1, BaseComponent[]... more) {
-        BaseComponent[] base = bc1;
-        for(BaseComponent[] bc: more) {
-            base = ObjectArrays.concat(base, bc, BaseComponent.class);
-        }
-        return base;
     }
     
     public static String getMsg(Plugin plugin, String lang, String path, String defMsg) {

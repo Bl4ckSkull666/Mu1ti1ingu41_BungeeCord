@@ -29,6 +29,8 @@ public final class MainField {
                 Language.loadLanguage();
                 s.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), uuid, "command.reload.successful", "Language files has been reloaded."));
                 return;
+            } else if(a[0].equalsIgnoreCase("test")) {
+                
             }
         }
         

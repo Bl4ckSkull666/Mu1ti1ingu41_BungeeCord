@@ -5,6 +5,7 @@
  */
 package de.bl4ckskull666.mu1ti1ingu41;
 
+import com.google.common.collect.ObjectArrays;
 import de.bl4ckskull666.mu1ti1ingu41.commands.LangCommand;
 import de.bl4ckskull666.mu1ti1ingu41.commands.LanguageCommand;
 import de.bl4ckskull666.mu1ti1ingu41.commands.SpracheCommand;
@@ -107,6 +108,32 @@ public class Mu1ti1ingu41 extends Plugin {
         }
     }
     
+    public static FileConfiguration loadCustomFile(Plugin plugin, String filename) {
+        if(!filename.toLowerCase().endsWith(".yml")) {
+            plugin.getLogger().log(Level.WARNING, "You want to load {0} with Plugin {1}, but i can''t load it while file must end with .yml", new Object[]{filename, plugin.getDescription().getName()});
+            return null;
+        }
+        if(!plugin.getDataFolder().exists())
+            plugin.getDataFolder().mkdirs();
+
+        File file = new File(plugin.getDataFolder(), filename);
+        FileConfiguration conf = YamlConfiguration.loadConfiguration(file);
+        conf.set("filename", filename);
+        return conf;
+    }
+    
+    public static void saveCustomFile(FileConfiguration conf, Plugin plugin) {
+        if(!plugin.getDataFolder().exists())
+                plugin.getDataFolder().mkdirs();
+        
+        File file = new File(plugin.getDataFolder(), conf.getString("filename", "customfile.yml"));
+        try {
+            conf.save(file);
+        } catch (IOException ex) {
+            plugin.getLogger().log(Level.WARNING, "Can't save the custom file", ex);
+        }
+    }
+    
     //Statics
     private static Mu1ti1ingu41 _plugin;
     public static Mu1ti1ingu41 getPlugin() {
@@ -128,5 +155,12 @@ public class Mu1ti1ingu41 extends Plugin {
     
     public static BaseComponent[] castMessage(String message) {
         return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', message));
+    }
+    
+    public static BaseComponent[] merge(BaseComponent[] main, BaseComponent[]... more) {
+        for(BaseComponent[] bc: more) {
+            main = ObjectArrays.concat(main, bc, BaseComponent.class);
+        }
+        return main;
     }
 }
