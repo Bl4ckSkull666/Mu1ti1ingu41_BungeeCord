@@ -14,8 +14,8 @@ import net.md_5.bungee.api.plugin.Command;
  */
 public class LangCommand extends Command {
     
-    public LangCommand() {
-        super("lang", "");
+    public LangCommand(String command) {
+        super(command, "mu1ti1ingu41.change");
     }
     
     @Override

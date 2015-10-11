@@ -7,8 +7,6 @@ package de.bl4ckskull666.mu1ti1ingu41;
 
 import com.google.common.collect.ObjectArrays;
 import de.bl4ckskull666.mu1ti1ingu41.commands.LangCommand;
-import de.bl4ckskull666.mu1ti1ingu41.commands.LanguageCommand;
-import de.bl4ckskull666.mu1ti1ingu41.commands.SpracheCommand;
 import de.bl4ckskull666.mu1ti1ingu41.listener.PostLogin;
 import de.bl4ckskull666.mu1ti1ingu41.utils.ResourceList;
 import java.io.File;
@@ -43,9 +41,8 @@ public class Mu1ti1ingu41 extends Plugin {
         UUIDLanguages._players.put(UUID.fromString("00000000-0000-0000-0000-000000000000"), getConfig().getString("default-language", "en"));
         Language.loadLanguage();
         
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new LangCommand());
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new LanguageCommand());
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new SpracheCommand());
+        for(String cmd: getConfig().getStringList("commands"))
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new LangCommand(cmd));
         
         ProxyServer.getInstance().getPluginManager().registerListener(this, new PostLogin());
     }

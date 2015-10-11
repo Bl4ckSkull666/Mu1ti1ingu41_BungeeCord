@@ -11,3 +11,7 @@ replace-languages:
   at: de
   ch: de
 save-user-language: true
+commands:
+- lang
+- language
+- sprache

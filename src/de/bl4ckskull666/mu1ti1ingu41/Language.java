@@ -207,7 +207,7 @@ public final class Language {
         }
         
         if(fc.isConfigurationSection(path) && fc.isString(path + ".message")) {
-            TextComponent msg = new TextComponent(searchAndReplace(fc.getString(path + ",message"), search, replace));
+            TextComponent msg = new TextComponent(searchAndReplace(fc.getString(path + ".message"), search, replace));
             if(fc.isString(path + ".hover-msg")) {
                 msg.setHoverEvent(
                         new HoverEvent(
@@ -446,6 +446,6 @@ public final class Language {
             for(int i = 0; i < search.length; i++)
                 msg = msg.replaceAll(search[i], replace[i]);
         }
-        return msg;
+        return ChatColor.translateAlternateColorCodes('&', msg);
     }
 }
