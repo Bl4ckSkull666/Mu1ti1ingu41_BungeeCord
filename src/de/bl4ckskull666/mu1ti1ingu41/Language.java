@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -102,6 +103,20 @@ public final class Language {
         Mu1ti1ingu41.getPlugin().getLogger().log(Level.INFO, "Language {0} for Plugin {1} has been loaded.", new Object[]{name, plugin});
     }
     
+    public static ArrayList<String> getPluginLanguages(Plugin pl) {
+        ArrayList<String> lang = new ArrayList<>();
+        if(!_languages.containsKey(pl.getDescription().getName().toLowerCase()))
+            return lang;
+        
+        for(Map.Entry<String, FileConfiguration> me: _languages.get(pl.getDescription().getName().toLowerCase()).entrySet())
+            lang.add(me.getKey());
+        return lang;
+    }
+    
+    public static String getPluginDefaultLanguage(Plugin pl) {
+        return Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + pl.getDescription().getName().toLowerCase(), "");
+    }
+    
     public static FileConfiguration getMessageFile(Plugin plugin, UUID uuid) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
             return null;
@@ -186,18 +201,120 @@ public final class Language {
         return getMessage(plugin, uuid, path, defMsg, new String[] {}, new String[] {});
     }
     
-    public static BaseComponent[] getMessage(Plugin plugin, UUID uuid, String path, String defMsg, String[] search, String[] replace) {
+    public static TextComponent getTextMessage(Plugin plugin, UUID uuid, String path, String defMsg) {
+        return getTextMessage(plugin, uuid, path, defMsg, new String[] {}, new String[] {});
+    }
+    
+    public static TextComponent getTextMessage(Plugin plugin, UUID uuid, String path, String defMsg, String[] search, String[] replace) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
-            return Mu1ti1ingu41.castMessage("Error on get Message (01). Please Inform the Server Team.");
+            return new TextComponent("Error on get Message (31). Please Inform the Server Team.");
         
         if(!UUIDLanguages._players.containsKey(uuid))
             setPlayerLanguage(uuid);
         
         if(!UUIDLanguages._players.containsKey(uuid))
-            return Mu1ti1ingu41.castMessage("Error on get Message (02). Please Inform the Server Team.");
+            return new TextComponent("Error on get Message (32). Please Inform the Server Team.");
         
         if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
-            return Mu1ti1ingu41.castMessage("Error on get Message (03). Please Inform the Server Team.");
+            return new TextComponent("Error on get Message (33). Please Inform the Server Team.");
+        
+        File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(UUIDLanguages._players.get(uuid))) {
+            f = _files.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
+            fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(UUIDLanguages._players.get(uuid));
+        }
+        
+        if(fc.isConfigurationSection(path) && fc.isString(path + ".message")) {
+            TextComponent msg = new TextComponent(searchAndReplace(fc.getString(path + ".message"), search, replace));
+            if(fc.isString(path + ".hover-msg")) {
+                msg.setHoverEvent(
+                    new HoverEvent(
+                        Utils.isHoverAction("show_" + fc.getString(path + ".hover-type", "text"))?HoverEvent.Action.valueOf(("show_" + fc.getString(path + ".hover-type", "text")).toUpperCase()):HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder(searchAndReplace(fc.getString(path + ".hover-msg"), search, replace)).create()
+                    )
+                );
+            }
+            if(fc.isString(path + ".click-msg")) {
+                msg.setClickEvent(
+                    new ClickEvent(
+                        Utils.isClickAction(fc.getString(path + ".click-type", "open_url"))?ClickEvent.Action.valueOf(fc.getString(path + ".click-type", "open_url").toUpperCase()):ClickEvent.Action.OPEN_URL, 
+                        searchAndReplace(fc.getString(path + ".click-msg"), search, replace)
+                    )
+                );
+            }
+            return msg;
+        }
+            
+        if(fc.getString(path, "").isEmpty()) {
+            saveMissingPath(f, fc, path, defMsg);
+            return new TextComponent(searchAndReplace(defMsg, search, replace));
+        }
+        
+        return new TextComponent(searchAndReplace(fc.getString(path), search, replace));
+    }
+    
+    //NEW
+    public static TextComponent getTextMessage(Plugin plugin, String countryCode, String path, String defMsg) {
+        return getTextMessage(plugin, countryCode, path, defMsg, new String[] {}, new String[] {});
+    }
+    
+    public static TextComponent getTextMessage(Plugin plugin, String countryCode, String path, String defMsg, String[] search, String[] replace) {
+        if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
+            return new TextComponent("Error on get Message (41). Please Inform the Server Team.");
+        
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
+            return new TextComponent("Error on get Message (42). Please Inform the Server Team.");
+        
+        File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
+        if(_languages.get(plugin.getDescription().getName().toLowerCase()).containsKey(countryCode)) {
+            f = _files.get(plugin.getDescription().getName().toLowerCase()).get(countryCode);
+            fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(countryCode);
+        }
+        
+        if(fc.isConfigurationSection(path) && fc.isString(path + ".message")) {
+            TextComponent msg = new TextComponent(searchAndReplace(fc.getString(path + ".message"), search, replace));
+            if(fc.isString(path + ".hover-msg")) {
+                msg.setHoverEvent(
+                    new HoverEvent(
+                        Utils.isHoverAction("show_" + fc.getString(path + ".hover-type", "text"))?HoverEvent.Action.valueOf(("show_" + fc.getString(path + ".hover-type", "text")).toUpperCase()):HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder(searchAndReplace(fc.getString(path + ".hover-msg"), search, replace)).create()
+                    )
+                );
+            }
+            if(fc.isString(path + ".click-msg")) {
+                msg.setClickEvent(
+                    new ClickEvent(
+                        Utils.isClickAction(fc.getString(path + ".click-type", "open_url"))?ClickEvent.Action.valueOf(fc.getString(path + ".click-type", "open_url").toUpperCase()):ClickEvent.Action.OPEN_URL, 
+                        searchAndReplace(fc.getString(path + ".click-msg"), search, replace)
+                    )
+                );
+            }
+            return msg;
+        }
+            
+        if(fc.getString(path, "").isEmpty()) {
+            saveMissingPath(f, fc, path, defMsg);
+            return new TextComponent(searchAndReplace(defMsg, search, replace));
+        }
+        
+        return new TextComponent(searchAndReplace(fc.getString(path), search, replace));
+    }
+    //NEW
+    
+    public static BaseComponent[] getMessage(Plugin plugin, UUID uuid, String path, String defMsg, String[] search, String[] replace) {
+        if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
+            return Mu1ti1ingu41.castMessage("Error on get Message (51). Please Inform the Server Team.");
+        
+        if(!UUIDLanguages._players.containsKey(uuid))
+            setPlayerLanguage(uuid);
+        
+        if(!UUIDLanguages._players.containsKey(uuid))
+            return Mu1ti1ingu41.castMessage("Error on get Message (52). Please Inform the Server Team.");
+        
+        if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
+            return Mu1ti1ingu41.castMessage("Error on get Message (53). Please Inform the Server Team.");
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
@@ -241,10 +358,10 @@ public final class Language {
     
     public static String getMsg(Plugin plugin, String lang, String path, String defMsg, String[] search, String[] replace) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
-            return "Error on get Message (31). Please Inform the Server Team.";
+            return "Error on get Message (61). Please Inform the Server Team.";
         
         if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
-            return "Error on get Message (32). Please Inform the Server Team.";
+            return "Error on get Message (62). Please Inform the Server Team.";
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
@@ -270,10 +387,10 @@ public final class Language {
     
     public static BaseComponent[] getMessage(Plugin plugin, String lang, String path, String defMsg, String[] search, String[] replace) {
         if(!_languages.containsKey(plugin.getDescription().getName().toLowerCase()))
-            return Mu1ti1ingu41.castMessage("Error on get Message (41). Please Inform the Server Team.");
+            return Mu1ti1ingu41.castMessage("Error on get Message (71). Please Inform the Server Team.");
         
         if(!Mu1ti1ingu41.getPlugin().getConfig().isString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()))
-            return Mu1ti1ingu41.castMessage("Error on get Message (42). Please Inform the Server Team.");
+            return Mu1ti1ingu41.castMessage("Error on get Message (72). Please Inform the Server Team.");
         
         File f = _files.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
         FileConfiguration fc = _languages.get(plugin.getDescription().getName().toLowerCase()).get(Mu1ti1ingu41.getPlugin().getConfig().getString("default-plugin-language." + plugin.getDescription().getName().toLowerCase()));
@@ -423,8 +540,8 @@ public final class Language {
                 os.close();
                 in.close();
                 
-                if(name.lastIndexOf(".") > -1)
-                    name = name.substring(0, name.lastIndexOf("."));
+//                if(name.lastIndexOf(".") > -1)
+//                    name = name.substring(0, name.lastIndexOf("."));
                 addFileToPlugin(spLang, pl.getDescription().getName().toLowerCase());
             } catch (IOException ex) {
                 Mu1ti1ingu41.getPlugin().getLogger().log(Level.SEVERE, "Error on loading default language " + name, ex);
