@@ -28,13 +28,12 @@ public class PostLogin implements Listener {
     public void onPostLogin(PostLoginEvent e) {
         if(!UUIDLanguages._players.containsKey(e.getPlayer().getUniqueId())) {
             Language.setPlayerLanguage(e.getPlayer().getUniqueId(), e.getPlayer().getPendingConnection().getAddress().getAddress());
-            e.getPlayer().sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(),
-                            e.getPlayer().getUniqueId(),
-                            "auto-language",
-                            "Set your language to %language%",
-                            new String[] {"%language%"},
-                            new String[] {getLanguageName(UUIDLanguages.getPlayerLanguage(e.getPlayer().getUniqueId()))}
-                    )
+            Language.sendMessage(Mu1ti1ingu41.getPlugin(),
+                    e.getPlayer(),
+                    "auto-language",
+                    "Set your language to %language%",
+                    new String[] {"%language%"},
+                    new String[] {getLanguageName(UUIDLanguages.getPlayerLanguage(e.getPlayer().getUniqueId()))}
             );
         }
         if(e.getPlayer().getServer() != null && e.getPlayer().getServer().getInfo() != null)

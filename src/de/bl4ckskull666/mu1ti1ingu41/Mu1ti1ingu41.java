@@ -41,6 +41,8 @@ public class Mu1ti1ingu41 extends Plugin {
         UUIDLanguages._players.put(UUID.fromString("00000000-0000-0000-0000-000000000000"), getConfig().getString("default-language", "en"));
         Language.loadLanguage();
         
+        _firstPrefix = getConfig().getBoolean("prefix-for-time", false);
+        
         for(String cmd: getConfig().getStringList("commands"))
             ProxyServer.getInstance().getPluginManager().registerCommand(this, new LangCommand(cmd));
         
@@ -139,6 +141,11 @@ public class Mu1ti1ingu41 extends Plugin {
     
     public static String name() {
         return _plugin.getDescription().getName();
+    }
+    
+    private static boolean _firstPrefix = false;
+    public static boolean getFirstPrefix() {
+        return _firstPrefix;
     }
     
     /**

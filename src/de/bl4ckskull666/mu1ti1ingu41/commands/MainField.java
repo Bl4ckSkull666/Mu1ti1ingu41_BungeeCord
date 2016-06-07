@@ -25,9 +25,8 @@ public final class MainField {
     public static void useCommand(CommandSender s, String[] a) {
         if(a.length > 0) {
             if(a[0].equalsIgnoreCase("reload")) {
-                UUID uuid = s instanceof ProxiedPlayer?((ProxiedPlayer)s).getUniqueId():UUID.fromString("00000000-0000-0000-0000-000000000000");
                 if(!s.hasPermission("mu1ti1ing41.admin")) {
-                    s.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), uuid, "command.reload.no-permission", "You dont have permission to use this command."));
+                    Language.sendMessage(Mu1ti1ingu41.getPlugin(), s, "command.reload.no-permission", "You dont have permission to use this command.");
                     return;
                 }
                 
@@ -40,7 +39,7 @@ public final class MainField {
                 for(Map.Entry<String, ServerInfo> me: ProxyServer.getInstance().getServers().entrySet())
                     me.getValue().sendData("BungeeCord", out.toByteArray(), true);
 
-                s.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), uuid, "command.reload.successful", "Language files has been reloaded."));
+                Language.sendMessage(Mu1ti1ingu41.getPlugin(), s, "command.reload.successful", "Language files has been reloaded.");
                 return;
             } else if(a[0].equalsIgnoreCase("test")) {
                 
@@ -54,7 +53,7 @@ public final class MainField {
         
         ProxiedPlayer p = (ProxiedPlayer)s;
         if(a.length < 1) {
-            p.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), p.getUniqueId(), "command.need-language", "Please select one of the following language :"));
+            Language.sendMessage(Mu1ti1ingu41.getPlugin(), p, "command.need-language", "Please select one of the following language :");
             String ava = "";
             for(String str: Mu1ti1ingu41.getPlugin().getConfig().getConfigurationSection("short-language").getKeys(false))
                 ava += (ava.isEmpty()?"§e":"§9, §e") + str;
@@ -63,7 +62,7 @@ public final class MainField {
         }
         
         if(Mu1ti1ingu41.getPlugin().getConfig().getString("short-language." + a[0].toLowerCase(), "").isEmpty()) {
-            p.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), p.getUniqueId(), "command.unknown-language", "Can't find the wished language."));
+            Language.sendMessage(Mu1ti1ingu41.getPlugin(), p, "command.unknown-language", "Can't find the wished language.");
             return;
         }
         
@@ -79,6 +78,6 @@ public final class MainField {
             me.getValue().sendData("BungeeCord", out.toByteArray(), true);
         }
         
-        p.sendMessage(Language.getMessage(Mu1ti1ingu41.getPlugin(), p.getUniqueId(), "command.changed-language", "The Wished Language has been changed."));
+        Language.sendMessage(Mu1ti1ingu41.getPlugin(), p, "command.changed-language", "The Wished Language has been changed.");
     }
 }
