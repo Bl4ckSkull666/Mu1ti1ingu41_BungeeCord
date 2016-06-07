@@ -21,8 +21,8 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Plugin;
-import yamlapi.file.FileConfiguration;
-import yamlapi.file.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  *

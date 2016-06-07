@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-import yamlapi.file.FileConfiguration;
-import yamlapi.file.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  *
